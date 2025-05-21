@@ -10,9 +10,8 @@ class TransformableContainer extends StatefulWidget {
   final bool allowTranslation;
   final double minScale;
   final double maxScale;
-  final Function(
-          String itemId, double scale, double rotation, Offset relativeOffset)?
-      onItemTransformUpdated;
+  final Function(String itemId, double scale, double rotation,
+      Offset relativeOffset, Offset absoluteOffset)? onItemTransformUpdated;
   final Function(ScaleEndDetails details)? onTransformEnd;
   final Size containerSize;
 
@@ -366,8 +365,9 @@ class _TransformableContainerState extends State<TransformableContainer>
   void _notifyItemTransformUpdate(String itemId) {
     if (widget.onItemTransformUpdated != null) {
       final item = widget.items.firstWhere((item) => item.id == itemId);
-      widget.onItemTransformUpdated!(
-          itemId, item.scale, item.rotation, item.relativeOffset);
+      final absoluteOffset = _relativeToAbsoluteOffset(item.relativeOffset);
+      widget.onItemTransformUpdated!(itemId, item.scale, item.rotation,
+          item.relativeOffset, absoluteOffset);
     }
   }
 
