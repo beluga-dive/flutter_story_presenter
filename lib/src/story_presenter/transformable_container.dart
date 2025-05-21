@@ -80,18 +80,18 @@ class _TransformableContainerState extends State<TransformableContainer>
   // }
 
   void _initializeAnimations() {
-    for (final item in widget.items) {
+    for (final TransformableItem item in widget.items) {
       _createAnimationController(item.id);
     }
   }
 
   void _updateAnimationControllers() {
     // Remove controllers for items that no longer exist
-    final currentIds = widget.items.map((item) => item.id).toSet();
-    final controllersToRemove =
+    final Set<String> currentIds = widget.items.map((item) => item.id).toSet();
+    final List<String> controllersToRemove =
         _animControllers.keys.where((id) => !currentIds.contains(id)).toList();
 
-    for (final id in controllersToRemove) {
+    for (final String id in controllersToRemove) {
       _animControllers[id]?.dispose();
       _animControllers.remove(id);
       _scaleAnimations.remove(id);
@@ -100,7 +100,7 @@ class _TransformableContainerState extends State<TransformableContainer>
     }
 
     // Add controllers for new items
-    for (final item in widget.items) {
+    for (final TransformableItem item in widget.items) {
       if (!_animControllers.containsKey(item.id)) {
         _createAnimationController(item.id);
       }
@@ -108,19 +108,20 @@ class _TransformableContainerState extends State<TransformableContainer>
   }
 
   void _createAnimationController(String itemId) {
-    final controller = AnimationController(
+    final AnimationController controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
 
     _animControllers[itemId] = controller;
 
-    final item = widget.items.firstWhere((item) => item.id == itemId);
+    final TransformableItem item =
+        widget.items.firstWhere((item) => item.id == itemId);
     _updateAnimationsForItem(itemId, item);
   }
 
   void _updateAnimationsForItem(String itemId, TransformableItem item) {
-    final controller = _animControllers[itemId]!;
+    final AnimationController controller = _animControllers[itemId]!;
 
     _scaleAnimations[itemId] = Tween<double>(
       begin: item.scale,
@@ -140,7 +141,8 @@ class _TransformableContainerState extends State<TransformableContainer>
   }
 
   void _resetTransformation(String itemId) {
-    final item = widget.items.firstWhere((item) => item.id == itemId);
+    final TransformableItem item =
+        widget.items.firstWhere((item) => item.id == itemId);
     _updateAnimationsForItem(itemId, item);
 
     _animControllers[itemId]!.forward(from: 0.0).whenComplete(() {
@@ -155,22 +157,25 @@ class _TransformableContainerState extends State<TransformableContainer>
 
   String? _findItemBetweenTouchPoints(Offset point1, Offset point2) {
     // Calculate the midpoint between the two touch points
-    final midpoint = Offset(
+    final Offset midpoint = Offset(
       (point1.dx + point2.dx) / 2,
       (point1.dy + point2.dy) / 2,
     );
 
     // Find which item contains this midpoint
-    for (final item in widget.items) {
+    // Check items in reverse order (top to bottom in z-index)
+    for (int i = widget.items.length - 1; i >= 0; i--) {
       // Calculate item's bounds based on its position and transformation
-      final absoluteOffset = _relativeToAbsoluteOffset(item.relativeOffset);
-      final itemCenter = Offset(
+      final TransformableItem item = widget.items[i];
+      final Offset absoluteOffset =
+          _relativeToAbsoluteOffset(item.relativeOffset);
+      final Offset itemCenter = Offset(
         widget.containerSize.width / 2 + absoluteOffset.dx,
         widget.containerSize.height / 2 + absoluteOffset.dy,
       );
 
       // Simplified check - just see if midpoint is close to the item center
-      final distance = (itemCenter - midpoint).distance;
+      final double distance = (itemCenter - midpoint).distance;
       if (distance < 100) {
         // Adjust this threshold based on your needs
         return item.id;
@@ -182,7 +187,7 @@ class _TransformableContainerState extends State<TransformableContainer>
 
   @override
   void dispose() {
-    for (final controller in _animControllers.values) {
+    for (final AnimationController controller in _animControllers.values) {
       controller.dispose();
     }
     super.dispose();
@@ -215,7 +220,7 @@ class _TransformableContainerState extends State<TransformableContainer>
                   });
 
                   if (_activeItemId != null) {
-                    final item = widget.items
+                    final TransformableItem item = widget.items
                         .firstWhere((item) => item.id == _activeItemId);
                     _baseScale = item.scale;
                     _baseRotation = item.rotation;
@@ -274,7 +279,7 @@ class _TransformableContainerState extends State<TransformableContainer>
 
                     // Handle translation - convert delta to relative
                     if (widget.allowTranslation) {
-                      final relativeDelta = Offset(
+                      final Offset relativeDelta = Offset(
                         details.focalPointDelta.dx / widget.containerSize.width,
                         details.focalPointDelta.dy /
                             widget.containerSize.height,
@@ -292,13 +297,13 @@ class _TransformableContainerState extends State<TransformableContainer>
                   final TransformableItem item = widget.items
                       .firstWhere((item) => item.id == _singleFingerItemId);
 
-                  final delta =
+                  final Offset delta =
                       details.localFocalPoint - _lastSingleFingerPosition;
                   _lastSingleFingerPosition = details.localFocalPoint;
 
                   setState(() {
                     // Convert absolute delta to relative delta
-                    final relativeDelta = Offset(
+                    final Offset relativeDelta = Offset(
                       delta.dx / widget.containerSize.width,
                       delta.dy / widget.containerSize.height,
                     );
@@ -309,7 +314,7 @@ class _TransformableContainerState extends State<TransformableContainer>
               },
         onDoubleTapDown: (details) {
           // Find which item was double-tapped
-          final tapPosition = details.localPosition;
+          final Offset tapPosition = details.localPosition;
           String? tappedItemId = _findItemAtPoint(tapPosition);
 
           if (tappedItemId != null) {
@@ -325,15 +330,15 @@ class _TransformableContainerState extends State<TransformableContainer>
   }
 
   Widget _buildTransformedItem(TransformableItem item) {
-    final isAnimating = _animControllers[item.id]?.isAnimating ?? false;
+    final bool isAnimating = _animControllers[item.id]?.isAnimating ?? false;
 
     return AnimatedBuilder(
       animation: _animControllers[item.id] ?? const AlwaysStoppedAnimation(0),
       builder: (context, child) {
-        final scale = isAnimating
+        final double scale = isAnimating
             ? _scaleAnimations[item.id]?.value ?? item.scale
             : item.scale;
-        final rotation = isAnimating
+        final double rotation = isAnimating
             ? _rotationAnimations[item.id]?.value ?? item.rotation
             : item.rotation;
 
@@ -364,8 +369,10 @@ class _TransformableContainerState extends State<TransformableContainer>
 
   void _notifyItemTransformUpdate(String itemId) {
     if (widget.onItemTransformUpdated != null) {
-      final item = widget.items.firstWhere((item) => item.id == itemId);
-      final absoluteOffset = _relativeToAbsoluteOffset(item.relativeOffset);
+      final TransformableItem item =
+          widget.items.firstWhere((item) => item.id == itemId);
+      final Offset absoluteOffset =
+          _relativeToAbsoluteOffset(item.relativeOffset);
       widget.onItemTransformUpdated!(itemId, item.scale, item.rotation,
           item.relativeOffset, absoluteOffset);
     }
@@ -375,17 +382,18 @@ class _TransformableContainerState extends State<TransformableContainer>
   String? _findItemAtPoint(Offset point) {
     // Check items in reverse order (top to bottom in z-index)
     for (int i = widget.items.length - 1; i >= 0; i--) {
-      final item = widget.items[i];
+      final TransformableItem item = widget.items[i];
 
       // Calculate item's center position using absolute coordinates
-      final absoluteOffset = _relativeToAbsoluteOffset(item.relativeOffset);
-      final itemCenter = Offset(
+      final Offset absoluteOffset =
+          _relativeToAbsoluteOffset(item.relativeOffset);
+      final Offset itemCenter = Offset(
         widget.containerSize.width / 2 + absoluteOffset.dx,
         widget.containerSize.height / 2 + absoluteOffset.dy,
       );
 
       // Simple distance-based hit testing
-      final distance = (itemCenter - point).distance;
+      final double distance = (itemCenter - point).distance;
       if (distance < 100) {
         // Adjust threshold based on item size
         return item.id;
