@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 
 class TransformableItem {
+  final String id;
   final Widget child;
   double scale;
   double rotation;
-  Offset offset;
-  final String id;
+
+  // Changed from offset to relativeOffset (0.0-1.0 range). Center is middle of the container.
+  Offset relativeOffset;
 
   TransformableItem({
-    required this.child,
     required this.id,
+    required this.child,
     this.scale = 1.0,
     this.rotation = 0.0,
-    this.offset = Offset.zero,
+    this.relativeOffset = Offset.zero, // Position as percentage of container
   });
 }

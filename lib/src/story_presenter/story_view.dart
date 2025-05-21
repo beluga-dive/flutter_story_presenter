@@ -48,6 +48,7 @@ class FlutterStoryPresenter extends StatefulWidget {
     this.onSlideDown,
     this.onSlideStart,
     super.key,
+    this.containerSize,
   }) : assert(initialIndex < items.length);
 
   /// List of StoryItem objects to display in the story view.
@@ -94,6 +95,8 @@ class FlutterStoryPresenter extends StatefulWidget {
 
   /// Widget to display text field or other content at the bottom of the screen.
   final Widget? footerWidget;
+
+  final Size? containerSize;
 
   @override
   State<FlutterStoryPresenter> createState() => _FlutterStoryPresenterState();
@@ -426,7 +429,7 @@ class _FlutterStoryPresenterState extends State<FlutterStoryPresenter>
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
+    final size = widget.containerSize ?? MediaQuery.of(context).size;
     return Stack(
       children: [
         if (currentItem.thumbnail != null) ...{
@@ -466,7 +469,8 @@ class _FlutterStoryPresenterState extends State<FlutterStoryPresenter>
               items: [
                 TransformableItem(
                   id: "test1",
-                  offset: currentItem.imageConfig?.offset ?? Offset.zero,
+                  relativeOffset:
+                      currentItem.imageConfig?.offset ?? Offset.zero,
                   scale: currentItem.imageConfig?.scale ?? 1.0,
                   rotation: currentItem.imageConfig?.rotation ?? 0.0,
                   child: ImageStoryView(
@@ -498,7 +502,8 @@ class _FlutterStoryPresenterState extends State<FlutterStoryPresenter>
               items: [
                 TransformableItem(
                   id: "test2",
-                  offset: currentItem.videoConfig?.offset ?? Offset.zero,
+                  relativeOffset:
+                      currentItem.videoConfig?.offset ?? Offset.zero,
                   scale: currentItem.videoConfig?.scale ?? 1.0,
                   rotation: currentItem.videoConfig?.rotation ?? 0.0,
                   child: VideoStoryView(

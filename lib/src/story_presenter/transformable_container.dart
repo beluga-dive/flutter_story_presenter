@@ -10,7 +10,8 @@ class TransformableContainer extends StatefulWidget {
   final bool allowTranslation;
   final double minScale;
   final double maxScale;
-  final Function(String itemId, double scale, double rotation, Offset offset)?
+  final Function(
+          String itemId, double scale, double rotation, Offset relativeOffset)?
       onItemTransformUpdated;
   final Function(ScaleEndDetails details)? onTransformEnd;
   final Size containerSize;
@@ -43,7 +44,7 @@ class _TransformableContainerState extends State<TransformableContainer>
   // Store the initial values at the start of a gesture
   double _baseScale = 1.0;
   double _baseRotation = 0.0;
-  Offset _focalPointStart = Offset.zero;
+  // Offset _focalPointStart = Offset.zero;
 
   // Track the item being manipulated with a single finger
   String? _singleFingerItemId;
@@ -62,6 +63,22 @@ class _TransformableContainerState extends State<TransformableContainer>
     // Handle items that were added or removed
     _updateAnimationControllers();
   }
+
+  // Convert relative offset (0.0-1.0) to absolute position in the container
+  Offset _relativeToAbsoluteOffset(Offset relativeOffset) {
+    return Offset(
+      relativeOffset.dx * widget.containerSize.width,
+      relativeOffset.dy * widget.containerSize.height,
+    );
+  }
+
+  // Convert absolute position in container to relative offset (0.0-1.0)
+  // Offset _absoluteToRelativeOffset(Offset absoluteOffset) {
+  //   return Offset(
+  //     absoluteOffset.dx / widget.containerSize.width,
+  //     absoluteOffset.dy / widget.containerSize.height,
+  //   );
+  // }
 
   void _initializeAnimations() {
     for (final item in widget.items) {
@@ -116,8 +133,9 @@ class _TransformableContainerState extends State<TransformableContainer>
       end: 0.0,
     ).animate(controller);
 
+    // Use absolute offset for animations
     _offsetAnimations[itemId] = Tween<Offset>(
-      begin: item.offset,
+      begin: _relativeToAbsoluteOffset(item.relativeOffset),
       end: Offset.zero,
     ).animate(controller);
   }
@@ -130,7 +148,7 @@ class _TransformableContainerState extends State<TransformableContainer>
       setState(() {
         item.scale = 1.0;
         item.rotation = 0.0;
-        item.offset = Offset.zero;
+        item.relativeOffset = Offset.zero;
         _notifyItemTransformUpdate(itemId);
       });
     });
@@ -146,13 +164,13 @@ class _TransformableContainerState extends State<TransformableContainer>
     // Find which item contains this midpoint
     for (final item in widget.items) {
       // Calculate item's bounds based on its position and transformation
+      final absoluteOffset = _relativeToAbsoluteOffset(item.relativeOffset);
       final itemCenter = Offset(
-        widget.containerSize.width / 2 + item.offset.dx,
-        widget.containerSize.height / 2 + item.offset.dy,
+        widget.containerSize.width / 2 + absoluteOffset.dx,
+        widget.containerSize.height / 2 + absoluteOffset.dy,
       );
 
       // Simplified check - just see if midpoint is close to the item center
-      // A more accurate check would consider the item's actual size and rotation
       final distance = (itemCenter - midpoint).distance;
       if (distance < 100) {
         // Adjust this threshold based on your needs
@@ -184,10 +202,8 @@ class _TransformableContainerState extends State<TransformableContainer>
             ? null
             : (details) {
                 if (details.pointerCount == 2) {
-                  // Two-finger gesture logic (existing code)
-                  _focalPointStart = details.focalPoint;
+                  // _focalPointStart = details.focalPoint;
 
-                  // Find which item is between the two touch points
                   final String? itemId = _findItemBetweenTouchPoints(
                     details.localFocalPoint,
                     details
@@ -206,7 +222,6 @@ class _TransformableContainerState extends State<TransformableContainer>
                     _baseRotation = item.rotation;
                   }
                 } else if (details.pointerCount == 1) {
-                  // Single-finger gesture - determine which item was touched
                   _lastSingleFingerPosition = details.localFocalPoint;
                   final String? itemId =
                       _findItemAtPoint(details.localFocalPoint);
@@ -258,9 +273,14 @@ class _TransformableContainerState extends State<TransformableContainer>
                       item.rotation = _baseRotation + details.rotation;
                     }
 
-                    // Handle translation
+                    // Handle translation - convert delta to relative
                     if (widget.allowTranslation) {
-                      item.offset += details.focalPointDelta;
+                      final relativeDelta = Offset(
+                        details.focalPointDelta.dx / widget.containerSize.width,
+                        details.focalPointDelta.dy /
+                            widget.containerSize.height,
+                      );
+                      item.relativeOffset += relativeDelta;
                     }
 
                     _notifyItemTransformUpdate(_activeItemId!);
@@ -278,8 +298,12 @@ class _TransformableContainerState extends State<TransformableContainer>
                   _lastSingleFingerPosition = details.localFocalPoint;
 
                   setState(() {
-                    // Only update translation for single finger
-                    item.offset += delta;
+                    // Convert absolute delta to relative delta
+                    final relativeDelta = Offset(
+                      delta.dx / widget.containerSize.width,
+                      delta.dy / widget.containerSize.height,
+                    );
+                    item.relativeOffset += relativeDelta;
                     _notifyItemTransformUpdate(_singleFingerItemId!);
                   });
                 }
@@ -310,20 +334,24 @@ class _TransformableContainerState extends State<TransformableContainer>
         final scale = isAnimating
             ? _scaleAnimations[item.id]?.value ?? item.scale
             : item.scale;
-
         final rotation = isAnimating
             ? _rotationAnimations[item.id]?.value ?? item.rotation
             : item.rotation;
 
-        final offset = isAnimating
-            ? _offsetAnimations[item.id]?.value ?? item.offset
-            : item.offset;
+        // Handle offset - use absolute offset for positioning
+        final Offset absoluteOffset;
+        if (isAnimating) {
+          absoluteOffset = _offsetAnimations[item.id]?.value ??
+              _relativeToAbsoluteOffset(item.relativeOffset);
+        } else {
+          absoluteOffset = _relativeToAbsoluteOffset(item.relativeOffset);
+        }
 
         return Positioned.fill(
           child: Center(
             child: Transform(
               transform: Matrix4.identity()
-                ..translate(offset.dx, offset.dy)
+                ..translate(absoluteOffset.dx, absoluteOffset.dy)
                 ..rotateZ(rotation)
                 ..scale(scale),
               alignment: Alignment.center,
@@ -339,24 +367,24 @@ class _TransformableContainerState extends State<TransformableContainer>
     if (widget.onItemTransformUpdated != null) {
       final item = widget.items.firstWhere((item) => item.id == itemId);
       widget.onItemTransformUpdated!(
-          itemId, item.scale, item.rotation, item.offset);
+          itemId, item.scale, item.rotation, item.relativeOffset);
     }
   }
 
-  // New helper method to find an item at a specific point
+  // Helper method to find an item at a specific point
   String? _findItemAtPoint(Offset point) {
     // Check items in reverse order (top to bottom in z-index)
     for (int i = widget.items.length - 1; i >= 0; i--) {
       final item = widget.items[i];
 
-      // Calculate item's center position
+      // Calculate item's center position using absolute coordinates
+      final absoluteOffset = _relativeToAbsoluteOffset(item.relativeOffset);
       final itemCenter = Offset(
-        widget.containerSize.width / 2 + item.offset.dx,
-        widget.containerSize.height / 2 + item.offset.dy,
+        widget.containerSize.width / 2 + absoluteOffset.dx,
+        widget.containerSize.height / 2 + absoluteOffset.dy,
       );
 
       // Simple distance-based hit testing
-      // You may want to replace this with more accurate bounds checking
       final distance = (itemCenter - point).distance;
       if (distance < 100) {
         // Adjust threshold based on item size
