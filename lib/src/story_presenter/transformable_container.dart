@@ -15,11 +15,17 @@ class TransformableContainer extends StatefulWidget {
       onItemTransformUpdated;
   final Function(ScaleEndDetails details)? onTransformEnd;
   final Size containerSize;
+  // final Size referenceSize; // Add reference size for scale normalization
+  // final Size referenceSize = Size(375, 812); // Add reference size for scale normalization - Default reference size (e.g., iPhone X)
+  Size get referenceSize => containerSize;
 
   const TransformableContainer({
     super.key,
     required this.items,
     required this.containerSize,
+    // this.referenceSize =
+    //     const Size(375, 812), // Default reference size (e.g., iPhone X)
+
     this.allowRotation = true,
     this.allowScaling = true,
     this.allowTranslation = true,
@@ -72,13 +78,21 @@ class _TransformableContainerState extends State<TransformableContainer>
     );
   }
 
-  // Convert absolute position in container to relative offset (0.0-1.0)
-  // Offset _absoluteToRelativeOffset(Offset absoluteOffset) {
-  //   return Offset(
-  //     absoluteOffset.dx / widget.containerSize.width,
-  //     absoluteOffset.dy / widget.containerSize.height,
-  //   );
-  // }
+  // Convert relative scale to absolute scale
+  double _relativeToAbsoluteScale(double relativeScale) {
+    // Calculate a scale factor based on container size versus reference size
+    final double widthRatio =
+        widget.containerSize.width / widget.referenceSize.width;
+    final double heightRatio =
+        widget.containerSize.height / widget.referenceSize.height;
+
+    // Use the smaller ratio to ensure item fits within container
+    final double sizeRatio =
+        widthRatio < heightRatio ? widthRatio : heightRatio;
+
+    // Apply the size ratio to convert relative scale to absolute scale
+    return relativeScale * sizeRatio;
+  }
 
   void _initializeAnimations() {
     for (final item in widget.items) {
@@ -123,9 +137,13 @@ class _TransformableContainerState extends State<TransformableContainer>
   void _updateAnimationsForItem(String itemId, TransformableItem item) {
     final controller = _animControllers[itemId]!;
 
+    // Convert relative scale to absolute for animation
+    final double absoluteScale = _relativeToAbsoluteScale(item.scale);
+    final double targetAbsoluteScale = _relativeToAbsoluteScale(1.0);
+
     _scaleAnimations[itemId] = Tween<double>(
-      begin: item.scale,
-      end: 1.0,
+      begin: absoluteScale,
+      end: targetAbsoluteScale,
     ).animate(controller);
 
     _rotationAnimations[itemId] = Tween<double>(
@@ -146,7 +164,7 @@ class _TransformableContainerState extends State<TransformableContainer>
 
     _animControllers[itemId]!.forward(from: 0.0).whenComplete(() {
       setState(() {
-        item.scale = 1.0;
+        item.scale = 1.0; // Reset to base relative scale
         item.rotation = 0.0;
         item.relativeOffset = Offset.zero;
         _notifyItemTransformUpdate(itemId);
@@ -172,8 +190,12 @@ class _TransformableContainerState extends State<TransformableContainer>
 
       // Simplified check - just see if midpoint is close to the item center
       final distance = (itemCenter - midpoint).distance;
-      if (distance < 100) {
-        // Adjust this threshold based on your needs
+
+      // Scale hit test size based on the container size
+      final hitTestRadius =
+          100 * (widget.containerSize.width / widget.referenceSize.width);
+
+      if (distance < hitTestRadius) {
         return item.id;
       }
     }
@@ -262,10 +284,14 @@ class _TransformableContainerState extends State<TransformableContainer>
                       .firstWhere((item) => item.id == _activeItemId);
 
                   setState(() {
-                    // Handle scaling
+                    // Handle scaling - keep scale as relative value
                     if (widget.allowScaling) {
-                      item.scale = (_baseScale * details.scale)
-                          .clamp(widget.minScale, widget.maxScale);
+                      // Calculate new relative scale
+                      double newRelativeScale = _baseScale * details.scale;
+
+                      // Apply min/max scale constraints
+                      item.scale = newRelativeScale.clamp(
+                          widget.minScale, widget.maxScale);
                     }
 
                     // Handle rotation
@@ -331,9 +357,15 @@ class _TransformableContainerState extends State<TransformableContainer>
     return AnimatedBuilder(
       animation: _animControllers[item.id] ?? const AlwaysStoppedAnimation(0),
       builder: (context, child) {
-        final scale = isAnimating
-            ? _scaleAnimations[item.id]?.value ?? item.scale
-            : item.scale;
+        // Get absolute scale for rendering
+        final double absoluteScale;
+        if (isAnimating) {
+          absoluteScale = _scaleAnimations[item.id]?.value ??
+              _relativeToAbsoluteScale(item.scale);
+        } else {
+          absoluteScale = _relativeToAbsoluteScale(item.scale);
+        }
+
         final rotation = isAnimating
             ? _rotationAnimations[item.id]?.value ?? item.rotation
             : item.rotation;
@@ -353,7 +385,7 @@ class _TransformableContainerState extends State<TransformableContainer>
               transform: Matrix4.identity()
                 ..translate(absoluteOffset.dx, absoluteOffset.dy)
                 ..rotateZ(rotation)
-                ..scale(scale),
+                ..scale(absoluteScale),
               alignment: Alignment.center,
               child: item.child,
             ),
@@ -384,10 +416,13 @@ class _TransformableContainerState extends State<TransformableContainer>
         widget.containerSize.height / 2 + absoluteOffset.dy,
       );
 
+      // Scale the hit test area based on the relative size of the container
+      final hitTestRadius =
+          100 * (widget.containerSize.width / widget.referenceSize.width);
+
       // Simple distance-based hit testing
       final distance = (itemCenter - point).distance;
-      if (distance < 100) {
-        // Adjust threshold based on item size
+      if (distance < hitTestRadius) {
         return item.id;
       }
     }
