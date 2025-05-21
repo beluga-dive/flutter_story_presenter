@@ -17,6 +17,9 @@ class StoryItem {
     this.webConfig,
     this.customWidget,
     this.audioConfig,
+    this.stickers = const [],
+    this.createdAt,
+    this.storyId = '',
   })  : assert(
           storyItemType == StoryItemType.custom || url != null,
           'URL is required when storyItemType is not custom',
@@ -25,6 +28,11 @@ class StoryItem {
           storyItemType != StoryItemType.custom || customWidget != null,
           'CustomWidget is required when storyItemType is custom',
         );
+
+  final DateTime? createdAt;
+  final String storyId;
+
+  final List<TransformableItem> stickers;
 
   /// Duration of displaying the widget
   final Duration duration;
@@ -36,8 +44,7 @@ class StoryItem {
   final Widget? errorWidget;
 
   /// Custom Widget to display fully instead of any other view
-  final Widget? Function(FlutterStoryController?, AudioPlayer? audioPlayer)?
-      customWidget;
+  final Widget? Function(FlutterStoryController?, AudioPlayer? audioPlayer)? customWidget;
 
   final StoryItemType storyItemType;
 

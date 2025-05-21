@@ -52,22 +52,21 @@ class _HomeState extends State<Home> {
           url: 'assets/fb8512a35d6f4b2e8917b74a048de71a.MP4',
           thumbnail: const Center(
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CupertinoActivityIndicator(
-                    radius: 15,
-                  ),
-                  SizedBox(
-                    width: 10,
-                  ),
-                  Text('Video Loading')
-                ],
-              )),
-          videoConfig: const StoryViewVideoConfig(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CupertinoActivityIndicator(
+                radius: 15,
+              ),
+              SizedBox(
+                width: 10,
+              ),
+              Text('Video Loading')
+            ],
+          )),
+          videoConfig: StoryViewVideoConfig(
             fit: BoxFit.cover,
           ),
         ),
-
         StoryItem(
           storyItemType: StoryItemType.custom,
           audioConfig: StoryViewAudioConfig(
@@ -85,12 +84,11 @@ class _HomeState extends State<Home> {
           url:
               "https://images.pexels.com/photos/3225517/pexels-photo-3225517.jpeg?auto=compress&cs=tinysrgb&w=800",
         ),
-
         StoryItem(
             storyItemType: StoryItemType.video,
             url:
                 'https://videos.pexels.com/video-files/5913245/5913245-uhd_1440_2560_30fps.mp4',
-            videoConfig: const StoryViewVideoConfig(
+            videoConfig: StoryViewVideoConfig(
               fit: BoxFit.cover,
               height: double.infinity,
               width: double.infinity,
@@ -145,7 +143,7 @@ class _HomeState extends State<Home> {
               Text('Video Loading')
             ],
           )),
-          videoConfig: const StoryViewVideoConfig(
+          videoConfig: StoryViewVideoConfig(
             fit: BoxFit.contain,
           ),
         ),

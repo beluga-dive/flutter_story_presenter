@@ -3,7 +3,7 @@ import '../utils/story_utils.dart';
 import 'package:video_player/video_player.dart';
 
 class StoryViewVideoConfig {
-  const StoryViewVideoConfig({
+  StoryViewVideoConfig({
     this.fit,
     this.height,
     this.width,
@@ -11,6 +11,9 @@ class StoryViewVideoConfig {
     this.cacheVideo = false,
     this.useVideoAspectRatio = true,
     this.videoPlayerOptions,
+    this.scale = 1.0,
+    this.rotation = 0.0,
+    this.offset = const Offset(0, 0),
   });
 
   /// Height for the Video
@@ -34,4 +37,8 @@ class StoryViewVideoConfig {
 
   /// In case of mixing the audio with music playing on device
   final VideoPlayerOptions? videoPlayerOptions;
+
+  double scale;
+  double rotation;
+  Offset offset;
 }

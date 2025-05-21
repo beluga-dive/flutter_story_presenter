@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_story_presenter/flutter_story_presenter.dart';
 import 'package:flutter_story_presenter/src/story_presenter/story_custom_view_wrapper.dart';
+import 'package:flutter_story_presenter/src/story_presenter/transformable_container.dart';
 import 'package:just_audio/just_audio.dart';
 import '../story_presenter/story_view_indicator.dart';
 import '../models/story_item.dart';
@@ -161,6 +163,8 @@ class _FlutterStoryPresenterState extends State<FlutterStoryPresenter>
 
   /// Returns the current story item.
   StoryItem get currentItem => widget.items[currentIndex];
+
+  List<TransformableItem> get currentStickers => currentItem.stickers;
 
   /// Returns the configuration for the story view indicator.
   StoryViewIndicatorConfig get storyViewIndicatorConfig =>
@@ -360,9 +364,7 @@ class _FlutterStoryPresenterState extends State<FlutterStoryPresenter>
         currentIndex != (widget.items.length - 1)) {
       /// Dispose the video player only in case of multiple story
       isCurrentItemLoaded = false;
-      setState(() {
-
-      });
+      setState(() {});
       _currentVideoPlayer?.removeListener(videoListener);
       _currentVideoPlayer?.dispose();
       _currentVideoPlayer = null;
@@ -445,50 +447,77 @@ class _FlutterStoryPresenterState extends State<FlutterStoryPresenter>
               onLoaded: () {
                 isCurrentItemLoaded = true;
                 _startStoryCountdown();
-
               },
               onAudioLoaded: (audioPlayer) {
                 isCurrentItemLoaded = true;
                 _audioPlayer = audioPlayer;
                 _startStoryCountdown();
-
               },
             ),
           ),
         },
         if (currentItem.storyItemType.isImage) ...{
           Positioned.fill(
-            child: ImageStoryView(
-              key: ValueKey('$currentIndex'),
-              storyItem: currentItem,
-              onImageLoaded: (isLoaded) {
-                isCurrentItemLoaded = isLoaded;
-                _startStoryCountdown();
-              },
-              onAudioLoaded: (audioPlayer) {
-                _audioPlayer = audioPlayer;
-                isCurrentItemLoaded = true;
+            child: TransformableContainer(
+              containerSize: size,
+              allowRotation: false,
+              allowScaling: false,
+              allowTranslation: false,
+              items: [
+                TransformableItem(
+                  id: "test1",
+                  offset: currentItem.imageConfig?.offset ?? Offset.zero,
+                  scale: currentItem.imageConfig?.scale ?? 1.0,
+                  rotation: currentItem.imageConfig?.rotation ?? 0.0,
+                  child: ImageStoryView(
+                    key: ValueKey('$currentIndex'),
+                    storyItem: currentItem,
+                    onImageLoaded: (isLoaded) {
+                      isCurrentItemLoaded = isLoaded;
+                      _startStoryCountdown();
+                    },
+                    onAudioLoaded: (audioPlayer) {
+                      _audioPlayer = audioPlayer;
+                      isCurrentItemLoaded = true;
 
-                _startStoryCountdown();
-              },
+                      _startStoryCountdown();
+                    },
+                  ),
+                ),
+              ],
             ),
-          ),
+          )
         },
         if (currentItem.storyItemType.isVideo) ...{
           Positioned.fill(
-            child: VideoStoryView(
-              storyItem: currentItem,
-              key: ValueKey('$currentIndex'),
-              looping: widget.items.length == 1 && widget.restartOnCompleted,
-              onVideoLoad: (videoPlayer) {
-                isCurrentItemLoaded = true;
-                _currentVideoPlayer = videoPlayer;
-                widget.onVideoLoad?.call(videoPlayer);
-                _startStoryCountdown();
-                if (mounted) {
-                  setState(() {});
-                }
-              },
+            child: TransformableContainer(
+              containerSize: size,
+              allowRotation: false,
+              allowScaling: false,
+              allowTranslation: false,
+              items: [
+                TransformableItem(
+                  id: "test2",
+                  offset: currentItem.videoConfig?.offset ?? Offset.zero,
+                  scale: currentItem.videoConfig?.scale ?? 1.0,
+                  rotation: currentItem.videoConfig?.rotation ?? 0.0,
+                  child: VideoStoryView(
+                    storyItem: currentItem,
+                    key: ValueKey('$currentIndex'),
+                    looping:
+                        widget.items.length == 1 && widget.restartOnCompleted,
+                    onVideoLoad: (videoPlayer) {
+                      isCurrentItemLoaded = true;
+                      _currentVideoPlayer = videoPlayer;
+                      widget.onVideoLoad?.call(videoPlayer);
+                      _startStoryCountdown();
+                      if (mounted) {
+                        setState(() {});
+                      }
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
         },
@@ -523,6 +552,15 @@ class _FlutterStoryPresenterState extends State<FlutterStoryPresenter>
                 _startStoryCountdown();
               },
             ),
+          ),
+        },
+        if (currentStickers.isNotEmpty) ...{
+          TransformableContainer(
+            containerSize: size,
+            items: currentStickers,
+            allowRotation: false,
+            allowScaling: false,
+            allowTranslation: false,
           ),
         },
         Align(
