@@ -6,11 +6,13 @@ class TransformableTextWidget extends StatelessWidget {
     required this.text,
     this.foregroundColor,
     this.backgroundColor,
+    this.fontWeight,
   });
 
   final String text;
   final Color? foregroundColor;
   final Color? backgroundColor;
+  final FontWeight? fontWeight;
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +22,7 @@ class TransformableTextWidget extends StatelessWidget {
       style: TextStyle(
         color: foregroundColor,
         backgroundColor: backgroundColor,
-        fontWeight: FontWeight.bold,
+        fontWeight: fontWeight,
       ),
     );
   }
