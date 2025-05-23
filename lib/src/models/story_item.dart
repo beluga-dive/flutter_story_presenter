@@ -20,6 +20,7 @@ class StoryItem {
     this.stickers = const [],
     this.createdAt,
     this.storyId = '',
+    this.useThumbnailColorForCropping = true,
   })  : assert(
           storyItemType == StoryItemType.custom || url != null,
           'URL is required when storyItemType is not custom',
@@ -29,6 +30,7 @@ class StoryItem {
           'CustomWidget is required when storyItemType is custom',
         );
 
+  final bool useThumbnailColorForCropping;
   final DateTime? createdAt;
   final String storyId;
 
@@ -44,7 +46,8 @@ class StoryItem {
   final Widget? errorWidget;
 
   /// Custom Widget to display fully instead of any other view
-  final Widget? Function(FlutterStoryController?, AudioPlayer? audioPlayer)? customWidget;
+  final Widget? Function(FlutterStoryController?, AudioPlayer? audioPlayer)?
+      customWidget;
 
   final StoryItemType storyItemType;
 

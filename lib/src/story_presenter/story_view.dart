@@ -431,40 +431,59 @@ class _FlutterStoryPresenterState extends State<FlutterStoryPresenter>
 
   @override
   Widget build(BuildContext context) {
-    final size = widget.containerSize ?? MediaQuery.of(context).size;
-    return AspectRatio(
-      aspectRatio: size.aspectRatio,
+    final Size currentDeviceSize = MediaQuery.of(context).size;
+    final Size size = widget.containerSize ?? currentDeviceSize;
+    return SizedBox(
+      width: currentDeviceSize.width,
+      height: currentDeviceSize.height,
       child: Stack(
         children: [
           if (currentItem.thumbnail != null) ...{
-            currentItem.thumbnail!,
+            Align(
+              alignment: Alignment.center,
+              child: SizedBox(
+                width: currentItem.useThumbnailColorForCropping
+                    ? currentDeviceSize.width
+                    : size.width,
+                height: currentItem.useThumbnailColorForCropping
+                    ? currentDeviceSize.height
+                    : size.height,
+                child: currentItem.thumbnail!,
+              ),
+            ),
           },
           if (currentItem.storyItemType.isCustom &&
               currentItem.customWidget != null) ...{
-            Positioned.fill(
-              child: StoryCustomWidgetWrapper(
-                isAutoStart: true,
-                key: UniqueKey(),
-                builder: (audioPlayer) {
-                  return currentItem.customWidget!(
-                          widget.flutterStoryController, audioPlayer) ??
-                      const SizedBox.shrink();
-                },
-                storyItem: currentItem,
-                onLoaded: () {
-                  isCurrentItemLoaded = true;
-                  _startStoryCountdown();
-                },
-                onAudioLoaded: (audioPlayer) {
-                  isCurrentItemLoaded = true;
-                  _audioPlayer = audioPlayer;
-                  _startStoryCountdown();
-                },
+            Align(
+              alignment: Alignment.center,
+              child: SizedBox(
+                width: size.width,
+                height: size.height,
+                child: StoryCustomWidgetWrapper(
+                  isAutoStart: true,
+                  key: UniqueKey(),
+                  builder: (audioPlayer) {
+                    return currentItem.customWidget!(
+                            widget.flutterStoryController, audioPlayer) ??
+                        const SizedBox.shrink();
+                  },
+                  storyItem: currentItem,
+                  onLoaded: () {
+                    isCurrentItemLoaded = true;
+                    _startStoryCountdown();
+                  },
+                  onAudioLoaded: (audioPlayer) {
+                    isCurrentItemLoaded = true;
+                    _audioPlayer = audioPlayer;
+                    _startStoryCountdown();
+                  },
+                ),
               ),
             ),
           },
           if (currentItem.storyItemType.isImage) ...{
-            Positioned.fill(
+            Align(
+              alignment: Alignment.center,
               child: TransformableContainer(
                 containerSize: size,
                 allowRotation: false,
@@ -497,7 +516,8 @@ class _FlutterStoryPresenterState extends State<FlutterStoryPresenter>
             )
           },
           if (currentItem.storyItemType.isVideo) ...{
-            Positioned.fill(
+            Align(
+              alignment: Alignment.center,
               child: TransformableContainer(
                 containerSize: size,
                 allowRotation: false,
@@ -564,12 +584,15 @@ class _FlutterStoryPresenterState extends State<FlutterStoryPresenter>
             ),
           },
           if (currentStickers.isNotEmpty) ...{
-            TransformableContainer(
-              containerSize: size,
-              items: currentStickers,
-              allowRotation: false,
-              allowScaling: false,
-              allowTranslation: false,
+            Align(
+              alignment: Alignment.center,
+              child: TransformableContainer(
+                containerSize: size,
+                items: currentStickers,
+                allowRotation: false,
+                allowScaling: false,
+                allowTranslation: false,
+              ),
             ),
           },
           Align(
