@@ -62,6 +62,7 @@ class _VideoStoryViewState extends State<VideoStoryView> {
           videoPlayerOptions: storyItem.videoConfig?.videoPlayerOptions,
         );
       }
+
       await videoPlayerController?.initialize();
       widget.onVideoLoad?.call(videoPlayerController!);
       await videoPlayerController?.play();
@@ -79,6 +80,7 @@ class _VideoStoryViewState extends State<VideoStoryView> {
   @override
   void dispose() {
     videoPlayerController?.dispose();
+    videoPlayerController = null;
     super.dispose();
   }
 

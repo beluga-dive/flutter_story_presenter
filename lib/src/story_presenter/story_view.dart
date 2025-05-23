@@ -4,18 +4,9 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_story_presenter/flutter_story_presenter.dart';
 import 'package:flutter_story_presenter/src/story_presenter/story_custom_view_wrapper.dart';
-import 'package:flutter_story_presenter/src/story_presenter/transformable_container.dart';
 import 'package:just_audio/just_audio.dart';
 import '../story_presenter/story_view_indicator.dart';
-import '../models/story_item.dart';
-import '../models/story_view_indicator_config.dart';
-import '../controller/flutter_story_controller.dart';
-import '../story_presenter/image_story_view.dart';
-import '../story_presenter/video_story_view.dart';
-import '../story_presenter/web_story_view.dart';
-import '../story_presenter/text_story_view.dart';
 import '../utils/smooth_video_progress.dart';
-import '../utils/story_utils.dart';
 import 'package:video_player/video_player.dart';
 
 typedef OnStoryChanged = void Function(int);
@@ -49,7 +40,10 @@ class FlutterStoryPresenter extends StatefulWidget {
     this.onSlideStart,
     super.key,
     this.containerSize,
+    this.pageController,
   }) : assert(initialIndex < items.length);
+
+  final PageController? pageController;
 
   /// List of StoryItem objects to display in the story view.
   final List<StoryItem> items;
@@ -211,9 +205,11 @@ class _FlutterStoryPresenterState extends State<FlutterStoryPresenter>
   }
 
   /// Resets the animation controller and its listeners.
-  void _resetAnimation() {
+  void _resetAnimation({bool shouldForwardAnimation = true}) {
     _animationController?.reset();
-    _animationController?.forward();
+    if (shouldForwardAnimation) {
+      _animationController?.forward();
+    }
     _animationController
       ?..removeListener(animationListener)
       ..removeStatusListener(animationStatusListener);
@@ -402,14 +398,20 @@ class _FlutterStoryPresenterState extends State<FlutterStoryPresenter>
       _audioDurationSubscriptionStream?.cancel();
       _audioPlayerStateStream?.cancel();
     }
-    if (_currentVideoPlayer != null) {
+    if (widget.pageController?.page == 0) {
+      if (_currentVideoPlayer != null) {
+        /// make the video play from start:
+        _currentVideoPlayer?.seekTo(Duration.zero);
+        _currentVideoPlayer?.play();
+      }
+    } else if (_currentVideoPlayer != null) {
       _currentVideoPlayer?.removeListener(videoListener);
       _currentVideoPlayer?.dispose();
       _currentVideoPlayer = null;
     }
 
     if (currentIndex == 0) {
-      _resetAnimation();
+      _resetAnimation(shouldForwardAnimation: false);
       _startStoryCountdown();
       if (mounted) {
         setState(() {});
@@ -418,7 +420,7 @@ class _FlutterStoryPresenterState extends State<FlutterStoryPresenter>
       return;
     }
 
-    _resetAnimation();
+    _resetAnimation(shouldForwardAnimation: false);
     currentIndex = currentIndex - 1;
     widget.onStoryChanged?.call(currentIndex);
     _playMedia();
@@ -640,10 +642,18 @@ class _FlutterStoryPresenterState extends State<FlutterStoryPresenter>
               height: size.height,
               child: GestureDetector(
                 key: ValueKey('$currentIndex'),
-                onLongPressDown: (details) => _pauseMedia(),
-                onLongPressUp: _resumeMedia,
-                onLongPressEnd: (details) => _resumeMedia(),
-                onLongPressCancel: _resumeMedia,
+                onLongPressDown: (details) {
+                  _pauseMedia();
+                },
+                onLongPressUp: () {
+                  _resumeMedia();
+                },
+                onLongPressEnd: (details) {
+                  _resumeMedia();
+                },
+                onLongPressCancel: () {
+                  _resumeMedia();
+                },
                 onVerticalDragStart: widget.onSlideStart?.call,
                 onVerticalDragUpdate: widget.onSlideDown?.call,
               ),
