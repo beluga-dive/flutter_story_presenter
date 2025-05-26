@@ -10,10 +10,11 @@ class TransformableContainer extends StatefulWidget {
   final bool allowTranslation;
   final double minScale;
   final double maxScale;
-  final Function(String itemId, double scale, double rotation,
-      Offset relativeOffset, Offset absoluteOffset)? onItemTransformUpdated;
+  final Function(String itemId, double scale, double rotation, Offset relativeOffset, Offset absoluteOffset)?
+      onItemTransformUpdated;
   final Function(ScaleEndDetails details)? onTransformEnd;
   final Size containerSize;
+  final bool showRuler;
 
   const TransformableContainer({
     super.key,
@@ -26,14 +27,14 @@ class TransformableContainer extends StatefulWidget {
     this.maxScale = 3.0,
     this.onItemTransformUpdated,
     this.onTransformEnd,
+    this.showRuler = true,
   });
 
   @override
   State<TransformableContainer> createState() => _TransformableContainerState();
 }
 
-class _TransformableContainerState extends State<TransformableContainer>
-    with TickerProviderStateMixin {
+class _TransformableContainerState extends State<TransformableContainer> with TickerProviderStateMixin {
   String? _activeItemId;
   final Map<String, AnimationController> _animControllers = {};
   final Map<String, Animation<double>> _scaleAnimations = {};
@@ -88,8 +89,7 @@ class _TransformableContainerState extends State<TransformableContainer>
   void _updateAnimationControllers() {
     // Remove controllers for items that no longer exist
     final Set<String> currentIds = widget.items.map((item) => item.id).toSet();
-    final List<String> controllersToRemove =
-        _animControllers.keys.where((id) => !currentIds.contains(id)).toList();
+    final List<String> controllersToRemove = _animControllers.keys.where((id) => !currentIds.contains(id)).toList();
 
     for (final String id in controllersToRemove) {
       _animControllers[id]?.dispose();
@@ -115,8 +115,7 @@ class _TransformableContainerState extends State<TransformableContainer>
 
     _animControllers[itemId] = controller;
 
-    final TransformableItem item =
-        widget.items.firstWhere((item) => item.id == itemId);
+    final TransformableItem item = widget.items.firstWhere((item) => item.id == itemId);
     _updateAnimationsForItem(itemId, item);
   }
 
@@ -141,8 +140,7 @@ class _TransformableContainerState extends State<TransformableContainer>
   }
 
   void _resetTransformation(String itemId) {
-    final TransformableItem item =
-        widget.items.firstWhere((item) => item.id == itemId);
+    final TransformableItem item = widget.items.firstWhere((item) => item.id == itemId);
     _updateAnimationsForItem(itemId, item);
 
     _animControllers[itemId]!.forward(from: 0.0).whenComplete(() {
@@ -167,8 +165,7 @@ class _TransformableContainerState extends State<TransformableContainer>
     for (int i = widget.items.length - 1; i >= 0; i--) {
       // Calculate item's bounds based on its position and transformation
       final TransformableItem item = widget.items[i];
-      final Offset absoluteOffset =
-          _relativeToAbsoluteOffset(item.relativeOffset);
+      final Offset absoluteOffset = _relativeToAbsoluteOffset(item.relativeOffset);
       final Offset itemCenter = Offset(
         widget.containerSize.width / 2 + absoluteOffset.dx,
         widget.containerSize.height / 2 + absoluteOffset.dy,
@@ -193,6 +190,19 @@ class _TransformableContainerState extends State<TransformableContainer>
     super.dispose();
   }
 
+  /// First screen size
+  /// 360w - 480h
+  ///
+  /// a) exact multiple - 720 - 960
+  /// b) not exact: 720 - 1080
+  /// what is the "exact size" - 720 x 960 - vertical padding
+  /// c) not exact: 840 -960
+  /// exact size = 720 x 960 - padding horizontal
+  /// you will have a multiple from inital size to NEW EXACT SIZE
+  /// 2x
+  /// scaling - initial was 2x, 2*2x = 4
+  /// Translation - 2x
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -200,9 +210,7 @@ class _TransformableContainerState extends State<TransformableContainer>
       height: widget.containerSize.height,
       child: GestureDetector(
         behavior: HitTestBehavior.translucent,
-        onScaleStart: !widget.allowRotation &&
-                !widget.allowScaling &&
-                !widget.allowTranslation
+        onScaleStart: !widget.allowRotation && !widget.allowScaling && !widget.allowTranslation
             ? null
             : (details) {
                 if (details.pointerCount == 2) {
@@ -210,8 +218,7 @@ class _TransformableContainerState extends State<TransformableContainer>
 
                   final String? itemId = _findItemBetweenTouchPoints(
                     details.localFocalPoint,
-                    details
-                        .localFocalPoint, // Update this if you can get both points
+                    details.localFocalPoint, // Update this if you can get both points
                   );
 
                   setState(() {
@@ -220,15 +227,13 @@ class _TransformableContainerState extends State<TransformableContainer>
                   });
 
                   if (_activeItemId != null) {
-                    final TransformableItem item = widget.items
-                        .firstWhere((item) => item.id == _activeItemId);
+                    final TransformableItem item = widget.items.firstWhere((item) => item.id == _activeItemId);
                     _baseScale = item.scale;
                     _baseRotation = item.rotation;
                   }
                 } else if (details.pointerCount == 1) {
                   _lastSingleFingerPosition = details.localFocalPoint;
-                  final String? itemId =
-                      _findItemAtPoint(details.localFocalPoint);
+                  final String? itemId = _findItemAtPoint(details.localFocalPoint);
 
                   if (itemId != null) {
                     setState(() {
@@ -238,9 +243,7 @@ class _TransformableContainerState extends State<TransformableContainer>
                   }
                 }
               },
-        onScaleEnd: !widget.allowRotation &&
-                !widget.allowScaling &&
-                !widget.allowTranslation
+        onScaleEnd: !widget.allowRotation && !widget.allowScaling && !widget.allowTranslation
             ? null
             : (details) {
                 if (widget.onTransformEnd != null) {
@@ -251,25 +254,20 @@ class _TransformableContainerState extends State<TransformableContainer>
                   _singleFingerItemId = null;
                 });
               },
-        onScaleUpdate: !widget.allowRotation &&
-                !widget.allowScaling &&
-                !widget.allowTranslation
+        onScaleUpdate: !widget.allowRotation && !widget.allowScaling && !widget.allowTranslation
             ? null
             : (details) {
+                debugPrint("details.pointerCount: ${details.pointerCount}");
                 // Handle two-finger gestures
                 if (_activeItemId != null && details.pointerCount == 2) {
-                  if (!widget.allowScaling &&
-                      !widget.allowRotation &&
-                      !widget.allowTranslation) return;
+                  if (!widget.allowScaling && !widget.allowRotation && !widget.allowTranslation) return;
 
-                  final TransformableItem item = widget.items
-                      .firstWhere((item) => item.id == _activeItemId);
+                  final TransformableItem item = widget.items.firstWhere((item) => item.id == _activeItemId);
 
                   setState(() {
                     // Handle scaling
                     if (widget.allowScaling) {
-                      item.scale = (_baseScale * details.scale)
-                          .clamp(widget.minScale, widget.maxScale);
+                      item.scale = (_baseScale * details.scale).clamp(widget.minScale, widget.maxScale);
                     }
 
                     // Handle rotation
@@ -281,8 +279,7 @@ class _TransformableContainerState extends State<TransformableContainer>
                     if (widget.allowTranslation) {
                       final Offset relativeDelta = Offset(
                         details.focalPointDelta.dx / widget.containerSize.width,
-                        details.focalPointDelta.dy /
-                            widget.containerSize.height,
+                        details.focalPointDelta.dy / widget.containerSize.height,
                       );
                       item.relativeOffset += relativeDelta;
                     }
@@ -291,14 +288,10 @@ class _TransformableContainerState extends State<TransformableContainer>
                   });
                 }
                 // Handle one-finger panning
-                else if (_singleFingerItemId != null &&
-                    details.pointerCount == 1 &&
-                    widget.allowTranslation) {
-                  final TransformableItem item = widget.items
-                      .firstWhere((item) => item.id == _singleFingerItemId);
+                else if (_singleFingerItemId != null && details.pointerCount == 1 && widget.allowTranslation) {
+                  final TransformableItem item = widget.items.firstWhere((item) => item.id == _singleFingerItemId);
 
-                  final Offset delta =
-                      details.localFocalPoint - _lastSingleFingerPosition;
+                  final Offset delta = details.localFocalPoint - _lastSingleFingerPosition;
                   _lastSingleFingerPosition = details.localFocalPoint;
 
                   setState(() {
@@ -322,9 +315,28 @@ class _TransformableContainerState extends State<TransformableContainer>
           }
         },
         child: Stack(
-          children:
-              widget.items.map((item) => _buildTransformedItem(item)).toList(),
+          children: [
+            // Existing items
+            ...widget.items.map((item) => _buildTransformedItem(item)).toList(),
+
+            // Add the ruler if enabled
+            if (widget.showRuler) _buildRuler(),
+          ],
         ),
+      ),
+    );
+  }
+
+  // Add this new method to render the ruler and item information
+  Widget _buildRuler() {
+    return Positioned.fill(
+      child: CustomPaint(
+        painter: RulerPainter(
+          containerSize: widget.containerSize,
+          items: widget.items,
+          relativeToAbsoluteOffset: _relativeToAbsoluteOffset,
+        ),
+        child: Container(), // Transparent container to capture the full area
       ),
     );
   }
@@ -335,18 +347,13 @@ class _TransformableContainerState extends State<TransformableContainer>
     return AnimatedBuilder(
       animation: _animControllers[item.id] ?? const AlwaysStoppedAnimation(0),
       builder: (context, child) {
-        final double scale = isAnimating
-            ? _scaleAnimations[item.id]?.value ?? item.scale
-            : item.scale;
-        final double rotation = isAnimating
-            ? _rotationAnimations[item.id]?.value ?? item.rotation
-            : item.rotation;
+        final double scale = isAnimating ? _scaleAnimations[item.id]?.value ?? item.scale : item.scale;
+        final double rotation = isAnimating ? _rotationAnimations[item.id]?.value ?? item.rotation : item.rotation;
 
         // Handle offset - use absolute offset for positioning
         final Offset absoluteOffset;
         if (isAnimating) {
-          absoluteOffset = _offsetAnimations[item.id]?.value ??
-              _relativeToAbsoluteOffset(item.relativeOffset);
+          absoluteOffset = _offsetAnimations[item.id]?.value ?? _relativeToAbsoluteOffset(item.relativeOffset);
         } else {
           absoluteOffset = _relativeToAbsoluteOffset(item.relativeOffset);
         }
@@ -369,12 +376,9 @@ class _TransformableContainerState extends State<TransformableContainer>
 
   void _notifyItemTransformUpdate(String itemId) {
     if (widget.onItemTransformUpdated != null) {
-      final TransformableItem item =
-          widget.items.firstWhere((item) => item.id == itemId);
-      final Offset absoluteOffset =
-          _relativeToAbsoluteOffset(item.relativeOffset);
-      widget.onItemTransformUpdated!(itemId, item.scale, item.rotation,
-          item.relativeOffset, absoluteOffset);
+      final TransformableItem item = widget.items.firstWhere((item) => item.id == itemId);
+      final Offset absoluteOffset = _relativeToAbsoluteOffset(item.relativeOffset);
+      widget.onItemTransformUpdated!(itemId, item.scale, item.rotation, item.relativeOffset, absoluteOffset);
     }
   }
 
@@ -385,8 +389,7 @@ class _TransformableContainerState extends State<TransformableContainer>
       final TransformableItem item = widget.items[i];
 
       // Calculate item's center position using absolute coordinates
-      final Offset absoluteOffset =
-          _relativeToAbsoluteOffset(item.relativeOffset);
+      final Offset absoluteOffset = _relativeToAbsoluteOffset(item.relativeOffset);
       final Offset itemCenter = Offset(
         widget.containerSize.width / 2 + absoluteOffset.dx,
         widget.containerSize.height / 2 + absoluteOffset.dy,
@@ -402,4 +405,208 @@ class _TransformableContainerState extends State<TransformableContainer>
 
     return null;
   }
+}
+
+class RulerPainter extends CustomPainter {
+  final Size containerSize;
+  final List<TransformableItem> items;
+  final Function(Offset) relativeToAbsoluteOffset;
+
+  RulerPainter({
+    required this.containerSize,
+    required this.items,
+    required this.relativeToAbsoluteOffset,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Draw coordinate system
+    final Paint axisPaint = Paint()
+      ..color = Colors.grey.withOpacity(0.5)
+      ..strokeWidth = 1.0
+      ..style = PaintingStyle.stroke;
+
+    // Center point
+    final Offset center = Offset(containerSize.width / 2, containerSize.height / 2);
+
+    // Draw crosshair at center
+    canvas.drawLine(
+      Offset(center.dx, 0),
+      Offset(center.dx, containerSize.height),
+      axisPaint,
+    );
+    canvas.drawLine(
+      Offset(0, center.dy),
+      Offset(containerSize.width, center.dy),
+      axisPaint,
+    );
+
+    // Draw circle at center
+    canvas.drawCircle(center, 5, Paint()..color = Colors.blue.withOpacity(0.5));
+
+    // Draw grid lines
+    final Paint gridPaint = Paint()
+      ..color = const Color.fromARGB(255, 27, 219, 30).withOpacity(0.2)
+      ..strokeWidth = 1.5;
+
+// Calculate grid spacing to create exactly 5 rectangles in each direction
+    final double horizontalStep = containerSize.width / 10;
+    final double verticalStep = containerSize.height / 10;
+
+// Draw horizontal grid lines for 5 rectangles above and 5 below center
+    for (int i = 1; i <= 5; i++) {
+      // Lines above center
+      canvas.drawLine(
+        Offset(0, center.dy - verticalStep * i),
+        Offset(containerSize.width, center.dy - verticalStep * i),
+        gridPaint,
+      );
+
+      // Lines below center
+      canvas.drawLine(
+        Offset(0, center.dy + verticalStep * i),
+        Offset(containerSize.width, center.dy + verticalStep * i),
+        gridPaint,
+      );
+
+      // Add percentage labels
+      final TextPainter topTextPainter = TextPainter(
+        text: TextSpan(
+          text: '${(i * 10)}%',
+          style: TextStyle(fontSize: 10, color: Colors.grey.withOpacity(0.7)),
+        ),
+        textDirection: TextDirection.ltr,
+      );
+      topTextPainter.layout();
+      topTextPainter.paint(canvas, Offset(5, center.dy - verticalStep * i - topTextPainter.height - 2));
+
+      final TextPainter bottomTextPainter = TextPainter(
+        text: TextSpan(
+          text: '${(i * 10)}%',
+          style: TextStyle(fontSize: 10, color: Colors.grey.withOpacity(0.7)),
+        ),
+        textDirection: TextDirection.ltr,
+      );
+      bottomTextPainter.layout();
+      bottomTextPainter.paint(canvas, Offset(5, center.dy + verticalStep * i + 2));
+    }
+
+// Draw vertical grid lines for 5 rectangles to left and 5 to right of center
+    for (int i = 1; i <= 5; i++) {
+      // Lines to the left of center
+      canvas.drawLine(
+        Offset(center.dx - horizontalStep * i, 0),
+        Offset(center.dx - horizontalStep * i, containerSize.height),
+        gridPaint,
+      );
+
+      // Lines to the right of center
+      canvas.drawLine(
+        Offset(center.dx + horizontalStep * i, 0),
+        Offset(center.dx + horizontalStep * i, containerSize.height),
+        gridPaint,
+      );
+
+      // Add percentage labels
+      final TextPainter leftTextPainter = TextPainter(
+        text: TextSpan(
+          text: '${(i * 10)}%',
+          style: TextStyle(fontSize: 10, color: Colors.grey.withOpacity(0.7)),
+        ),
+        textDirection: TextDirection.ltr,
+      );
+      leftTextPainter.layout();
+      leftTextPainter.paint(canvas, Offset(center.dx - horizontalStep * i - leftTextPainter.width - 2, 5));
+
+      final TextPainter rightTextPainter = TextPainter(
+        text: TextSpan(
+          text: '${(i * 10)}%',
+          style: TextStyle(fontSize: 10, color: Colors.grey.withOpacity(0.7)),
+        ),
+        textDirection: TextDirection.ltr,
+      );
+      rightTextPainter.layout();
+      rightTextPainter.paint(canvas, Offset(center.dx + horizontalStep * i + 2, 5));
+    }
+    // Draw item info
+    for (final TransformableItem item in items) {
+      final Offset absoluteOffset = relativeToAbsoluteOffset(item.relativeOffset);
+      final Offset itemCenter = Offset(
+        containerSize.width / 2 + absoluteOffset.dx,
+        containerSize.height / 2 + absoluteOffset.dy,
+      );
+
+      // Draw line from center to item
+      canvas.drawLine(
+        center,
+        itemCenter,
+        Paint()
+          ..color = Colors.red.withOpacity(0.5)
+          ..strokeWidth = 1.5,
+      );
+
+      // Draw item center point
+      canvas.drawCircle(
+        itemCenter,
+        4,
+        Paint()..color = Colors.red.withOpacity(0.5),
+      );
+
+      // Format text to display
+      final String infoText =
+          'RelOffset: (${item.relativeOffset.dx.toStringAsFixed(3)}, ${item.relativeOffset.dy.toStringAsFixed(3)})\n'
+          'Offset: (${absoluteOffset.dx.toStringAsFixed(1)}, ${absoluteOffset.dy.toStringAsFixed(1)})\n'
+          'Scale: ${item.scale.toStringAsFixed(2)}x\n'
+          'Rotation: ${(item.rotation * 180 / 3.14159).toStringAsFixed(1)}°';
+
+      // Add text with background
+      _drawTextWithBackground(
+        canvas,
+        infoText,
+        Offset(itemCenter.dx + 15, itemCenter.dy + 15),
+        Colors.black.withOpacity(0.7),
+        Colors.white,
+      );
+    }
+  }
+
+  void _drawTextWithBackground(
+    Canvas canvas,
+    String text,
+    Offset position,
+    Color backgroundColor,
+    Color textColor,
+  ) {
+    final TextPainter textPainter = TextPainter(
+      text: TextSpan(
+        text: text,
+        style: TextStyle(
+          color: textColor,
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      textAlign: TextAlign.left,
+      textDirection: TextDirection.ltr,
+    );
+
+    textPainter.layout();
+
+    // Draw background
+    final Rect rect = Rect.fromPoints(
+      position,
+      position.translate(textPainter.width + 10, textPainter.height + 10),
+    );
+
+    canvas.drawRect(
+      rect,
+      Paint()..color = backgroundColor,
+    );
+
+    // Draw text
+    textPainter.paint(canvas, position.translate(5, 5));
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
