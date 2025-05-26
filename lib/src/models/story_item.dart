@@ -21,6 +21,7 @@ class StoryItem {
     this.createdAt,
     this.storyId = '',
     this.useThumbnailColorForCropping = true,
+    this.canvasWidth = 1.0,
   })  : assert(
           storyItemType == StoryItemType.custom || url != null,
           'URL is required when storyItemType is not custom',
@@ -30,6 +31,7 @@ class StoryItem {
           'CustomWidget is required when storyItemType is custom',
         );
 
+  final double canvasWidth;
   final bool useThumbnailColorForCropping;
   final DateTime? createdAt;
   final String storyId;
@@ -46,8 +48,7 @@ class StoryItem {
   final Widget? errorWidget;
 
   /// Custom Widget to display fully instead of any other view
-  final Widget? Function(FlutterStoryController?, AudioPlayer? audioPlayer)?
-      customWidget;
+  final Widget? Function(FlutterStoryController?, AudioPlayer? audioPlayer)? customWidget;
 
   final StoryItemType storyItemType;
 

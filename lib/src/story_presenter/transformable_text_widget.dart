@@ -23,6 +23,11 @@ class TransformableTextWidget extends StatelessWidget {
         color: foregroundColor,
         backgroundColor: backgroundColor,
         fontWeight: fontWeight,
+        fontSize: 16.0,
+        fontFamily: "SF-Pro",
+        height: 1.1,
+        letterSpacing: 0.5,
+        inherit: false,
       ),
     );
   }
