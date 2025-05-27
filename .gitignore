@@ -27,3 +27,8 @@ migrate_working_dir/
 **/doc/api/
 .dart_tool/
 build/
+.flutter-plugins
+.flutter-plugins-dependencies
+example/windows/flutter/generated_plugins.cmake
+example/windows/flutter/generated_plugin_registrant.cc
+example/macos/Flutter/GeneratedPluginRegistrant.swift
