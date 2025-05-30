@@ -187,9 +187,7 @@ class _FlutterStoryPresenterState extends State<FlutterStoryPresenter>
       }
     }
 
-    if (jumpIndex != null &&
-        jumpIndex >= 0 &&
-        jumpIndex < widget.items.length) {
+    if (jumpIndex != null && jumpIndex >= 0 && jumpIndex < widget.items.length) {
       currentIndex = jumpIndex - 1;
       _playNext();
     }
@@ -247,15 +245,13 @@ class _FlutterStoryPresenterState extends State<FlutterStoryPresenter>
 
         _animationController?.duration = v;
 
-        _currentProgressAnimation =
-            Tween<double>(begin: 0, end: 1).animate(_animationController!)
-              ..addListener(animationListener)
-              ..addStatusListener(animationStatusListener);
+        _currentProgressAnimation = Tween<double>(begin: 0, end: 1).animate(_animationController!)
+          ..addListener(animationListener)
+          ..addStatusListener(animationStatusListener);
 
         _animationController!.forward();
       });
-      _audioDurationSubscriptionStream =
-          _audioPlayer?.positionStream.listen(audioPositionListener);
+      _audioDurationSubscriptionStream = _audioPlayer?.positionStream.listen(audioPositionListener);
       _audioPlayerStateStream = _audioPlayer?.playerStateStream.listen(
         (event) {
           if (event.playing) {
@@ -275,13 +271,11 @@ class _FlutterStoryPresenterState extends State<FlutterStoryPresenter>
       vsync: this,
     );
 
-    _animationController?.duration =
-        _currentVideoPlayer?.value.duration ?? currentItem.duration;
+    _animationController?.duration = _currentVideoPlayer?.value.duration ?? currentItem.duration;
 
-    _currentProgressAnimation =
-        Tween<double>(begin: 0, end: 1).animate(_animationController!)
-          ..addListener(animationListener)
-          ..addStatusListener(animationStatusListener);
+    _currentProgressAnimation = Tween<double>(begin: 0, end: 1).animate(_animationController!)
+      ..addListener(animationListener)
+      ..addStatusListener(animationStatusListener);
 
     _animationController!.forward();
   }
@@ -350,17 +344,14 @@ class _FlutterStoryPresenterState extends State<FlutterStoryPresenter>
 
   /// Plays the next story item.
   void _playNext() async {
-    if (widget.items.length == 1 &&
-        _currentVideoPlayer != null &&
-        widget.restartOnCompleted) {
+    if (widget.items.length == 1 && _currentVideoPlayer != null && widget.restartOnCompleted) {
       await widget.onCompleted?.call();
 
       /// In case of story length 1 with video, we won't initialise,
       /// instead we will loop the video
       return;
     }
-    if (_currentVideoPlayer != null &&
-        currentIndex != (widget.items.length - 1)) {
+    if (_currentVideoPlayer != null && currentIndex != (widget.items.length - 1)) {
       /// Dispose the video player only in case of multiple story
       isCurrentItemLoaded = false;
       setState(() {});
@@ -433,7 +424,9 @@ class _FlutterStoryPresenterState extends State<FlutterStoryPresenter>
   Widget build(BuildContext context) {
     final Size currentDeviceSize = MediaQuery.of(context).size;
     final Size size = widget.containerSize ?? currentDeviceSize;
-    return SizedBox(
+    return Container(
+      clipBehavior: Clip.hardEdge,
+      decoration: const BoxDecoration(),
       width: currentDeviceSize.width,
       height: currentDeviceSize.height,
       child: Stack(
@@ -442,18 +435,13 @@ class _FlutterStoryPresenterState extends State<FlutterStoryPresenter>
             Align(
               alignment: Alignment.center,
               child: SizedBox(
-                width: currentItem.useThumbnailColorForCropping
-                    ? currentDeviceSize.width
-                    : size.width,
-                height: currentItem.useThumbnailColorForCropping
-                    ? currentDeviceSize.height
-                    : size.height,
+                width: currentItem.useThumbnailColorForCropping ? currentDeviceSize.width : size.width,
+                height: currentItem.useThumbnailColorForCropping ? currentDeviceSize.height : size.height,
                 child: currentItem.thumbnail!,
               ),
             ),
           },
-          if (currentItem.storyItemType.isCustom &&
-              currentItem.customWidget != null) ...{
+          if (currentItem.storyItemType.isCustom && currentItem.customWidget != null) ...{
             Align(
               alignment: Alignment.center,
               child: SizedBox(
@@ -463,8 +451,7 @@ class _FlutterStoryPresenterState extends State<FlutterStoryPresenter>
                   isAutoStart: true,
                   key: UniqueKey(),
                   builder: (audioPlayer) {
-                    return currentItem.customWidget!(
-                            widget.flutterStoryController, audioPlayer) ??
+                    return currentItem.customWidget!(widget.flutterStoryController, audioPlayer) ??
                         const SizedBox.shrink();
                   },
                   storyItem: currentItem,
@@ -484,69 +471,74 @@ class _FlutterStoryPresenterState extends State<FlutterStoryPresenter>
           if (currentItem.storyItemType.isImage) ...{
             Align(
               alignment: Alignment.center,
-              child: TransformableContainer(
-                containerSize: size,
-                allowRotation: false,
-                allowScaling: false,
-                allowTranslation: false,
-                items: [
-                  TransformableItem(
-                    id: "test1",
-                    relativeOffset:
-                        currentItem.imageConfig?.offset ?? Offset.zero,
-                    scale: currentItem.imageConfig?.scale ?? 1.0,
-                    rotation: currentItem.imageConfig?.rotation ?? 0.0,
-                    child: ImageStoryView(
-                      key: ValueKey('$currentIndex'),
-                      storyItem: currentItem,
-                      onImageLoaded: (isLoaded) {
-                        isCurrentItemLoaded = isLoaded;
-                        _startStoryCountdown();
-                      },
-                      onAudioLoaded: (audioPlayer) {
-                        _audioPlayer = audioPlayer;
-                        isCurrentItemLoaded = true;
+              child: Container(
+                clipBehavior: Clip.hardEdge,
+                decoration: const BoxDecoration(),
+                child: TransformableContainer(
+                  containerSize: size,
+                  allowRotation: false,
+                  allowScaling: false,
+                  allowTranslation: false,
+                  items: [
+                    TransformableItem(
+                      id: "test1",
+                      relativeOffset: currentItem.imageConfig?.offset ?? Offset.zero,
+                      scale: currentItem.imageConfig?.scale ?? 1.0,
+                      rotation: currentItem.imageConfig?.rotation ?? 0.0,
+                      child: ImageStoryView(
+                        key: ValueKey('$currentIndex'),
+                        storyItem: currentItem,
+                        onImageLoaded: (isLoaded) {
+                          isCurrentItemLoaded = isLoaded;
+                          _startStoryCountdown();
+                        },
+                        onAudioLoaded: (audioPlayer) {
+                          _audioPlayer = audioPlayer;
+                          isCurrentItemLoaded = true;
 
-                        _startStoryCountdown();
-                      },
+                          _startStoryCountdown();
+                        },
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             )
           },
           if (currentItem.storyItemType.isVideo) ...{
             Align(
               alignment: Alignment.center,
-              child: TransformableContainer(
-                containerSize: size,
-                allowRotation: false,
-                allowScaling: false,
-                allowTranslation: false,
-                items: [
-                  TransformableItem(
-                    id: "test2",
-                    relativeOffset:
-                        currentItem.videoConfig?.offset ?? Offset.zero,
-                    scale: currentItem.videoConfig?.scale ?? 1.0,
-                    rotation: currentItem.videoConfig?.rotation ?? 0.0,
-                    child: VideoStoryView(
-                      storyItem: currentItem,
-                      key: ValueKey('$currentIndex'),
-                      looping:
-                          widget.items.length == 1 && widget.restartOnCompleted,
-                      onVideoLoad: (videoPlayer) {
-                        isCurrentItemLoaded = true;
-                        _currentVideoPlayer = videoPlayer;
-                        widget.onVideoLoad?.call(videoPlayer);
-                        _startStoryCountdown();
-                        if (mounted) {
-                          setState(() {});
-                        }
-                      },
+              child: Container(
+                clipBehavior: Clip.hardEdge,
+                decoration: const BoxDecoration(),
+                child: TransformableContainer(
+                  containerSize: size,
+                  allowRotation: false,
+                  allowScaling: false,
+                  allowTranslation: false,
+                  items: [
+                    TransformableItem(
+                      id: "test2",
+                      relativeOffset: currentItem.videoConfig?.offset ?? Offset.zero,
+                      scale: currentItem.videoConfig?.scale ?? 1.0,
+                      rotation: currentItem.videoConfig?.rotation ?? 0.0,
+                      child: VideoStoryView(
+                        storyItem: currentItem,
+                        key: ValueKey('$currentIndex'),
+                        looping: widget.items.length == 1 && widget.restartOnCompleted,
+                        onVideoLoad: (videoPlayer) {
+                          isCurrentItemLoaded = true;
+                          _currentVideoPlayer = videoPlayer;
+                          widget.onVideoLoad?.call(videoPlayer);
+                          _startStoryCountdown();
+                          if (mounted) {
+                            setState(() {});
+                          }
+                        },
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           },
@@ -560,8 +552,7 @@ class _FlutterStoryPresenterState extends State<FlutterStoryPresenter>
                   if (loaded) {
                     _startStoryCountdown();
                   }
-                  currentItem.webConfig?.onWebViewLoaded
-                      ?.call(controller, loaded);
+                  currentItem.webConfig?.onWebViewLoaded?.call(controller, loaded);
                 },
               ),
             ),
@@ -586,12 +577,16 @@ class _FlutterStoryPresenterState extends State<FlutterStoryPresenter>
           if (currentStickers.isNotEmpty) ...{
             Align(
               alignment: Alignment.center,
-              child: TransformableContainer(
-                containerSize: size,
-                items: currentStickers,
-                allowRotation: false,
-                allowScaling: false,
-                allowTranslation: false,
+              child: Container(
+                clipBehavior: Clip.hardEdge,
+                decoration: const BoxDecoration(),
+                child: TransformableContainer(
+                  containerSize: size,
+                  items: currentStickers,
+                  allowRotation: false,
+                  allowScaling: false,
+                  allowTranslation: false,
+                ),
               ),
             ),
           },
@@ -608,12 +603,9 @@ class _FlutterStoryPresenterState extends State<FlutterStoryPresenter>
                           builder: (context, progress, duration, child) {
                             return StoryViewIndicator(
                               currentIndex: currentIndex,
-                              currentItemAnimatedValue:
-                                  progress.inMilliseconds /
-                                      duration.inMilliseconds,
+                              currentItemAnimatedValue: progress.inMilliseconds / duration.inMilliseconds,
                               totalItems: widget.items.length,
-                              storyViewIndicatorConfig:
-                                  storyViewIndicatorConfig,
+                              storyViewIndicatorConfig: storyViewIndicatorConfig,
                             );
                           })
                       : _animationController != null
@@ -623,16 +615,14 @@ class _FlutterStoryPresenterState extends State<FlutterStoryPresenter>
                                 currentIndex: currentIndex,
                                 currentItemAnimatedValue: currentItemProgress,
                                 totalItems: widget.items.length,
-                                storyViewIndicatorConfig:
-                                    storyViewIndicatorConfig,
+                                storyViewIndicatorConfig: storyViewIndicatorConfig,
                               ),
                             )
                           : StoryViewIndicator(
                               currentIndex: currentIndex,
                               currentItemAnimatedValue: currentItemProgress,
                               totalItems: widget.items.length,
-                              storyViewIndicatorConfig:
-                                  storyViewIndicatorConfig,
+                              storyViewIndicatorConfig: storyViewIndicatorConfig,
                             ),
                 ],
               ),
