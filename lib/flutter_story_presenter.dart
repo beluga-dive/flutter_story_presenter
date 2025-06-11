@@ -16,4 +16,5 @@ export 'src/story_presenter/video_story_view.dart';
 export 'src/story_presenter/web_story_view.dart';
 export 'src/story_presenter/transformable_container.dart';
 export 'src/story_presenter/transformable_text_widget.dart';
+export 'src/story_presenter/transformable_image_widget.dart';
 export 'src/utils/story_utils.dart';
