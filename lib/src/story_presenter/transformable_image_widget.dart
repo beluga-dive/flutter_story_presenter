@@ -2,18 +2,22 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 class TransformableImageWidget extends StatelessWidget {
-  const TransformableImageWidget(
-      {super.key, required this.aspectRatio, this.image, this.backgroundColor, this.imageUrl});
+  const TransformableImageWidget({
+    super.key,
+    this.aspectRatio,
+    this.image,
+    this.backgroundColor,
+    this.imageUrl,
+  });
 
-  final double aspectRatio;
+  final double? aspectRatio;
   final ImageProvider<Object>? image;
   final Color? backgroundColor;
   final String? imageUrl;
 
   @override
   Widget build(BuildContext context) {
-    return AspectRatio(
-      aspectRatio: aspectRatio,
+    return aspectRationWrapper(
       child: Container(
         // width: image.width.toDouble(),
         // height: image.height.toDouble(),
@@ -48,5 +52,15 @@ class TransformableImageWidget extends StatelessWidget {
             : null,
       ),
     );
+  }
+
+  Widget aspectRationWrapper({required Widget child}) {
+    if (aspectRatio != null) {
+      return AspectRatio(
+        aspectRatio: aspectRatio!,
+        child: child,
+      );
+    }
+    return child;
   }
 }
