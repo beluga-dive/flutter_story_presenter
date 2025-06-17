@@ -363,15 +363,17 @@ class _TransformableContainerState extends State<TransformableContainer> with Ti
                   });
                 }
               },
-        onDoubleTapDown: (details) {
-          // Find which item was double-tapped
-          final Offset tapPosition = details.localPosition;
-          String? tappedItemId = _findItemAtPoint(tapPosition);
+        onDoubleTapDown: !widget.allowRotation && !widget.allowScaling && !widget.allowTranslation
+            ? null
+            : (details) {
+                // Find which item was double-tapped
+                final Offset tapPosition = details.localPosition;
+                String? tappedItemId = _findItemAtPoint(tapPosition);
 
-          if (tappedItemId != null) {
-            _resetTransformation(tappedItemId);
-          }
-        },
+                if (tappedItemId != null) {
+                  _resetTransformation(tappedItemId);
+                }
+              },
         child: Stack(
           children: [
             // Existing items
