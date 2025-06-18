@@ -427,7 +427,7 @@ class _TransformableContainerState extends State<TransformableContainer> with Ti
                 ..scale(scale),
               alignment: Alignment.center,
               child: Container(
-                key: item.key,
+                key: widget.allowRotation || widget.allowScaling || widget.allowTranslation ? item.key : null,
                 child: item.child,
               ),
             ),
