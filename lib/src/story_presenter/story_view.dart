@@ -109,6 +109,7 @@ class _FlutterStoryPresenterState extends State<FlutterStoryPresenter>
   Duration? _totalAudioDuration;
   StreamSubscription? _audioDurationSubscriptionStream;
   StreamSubscription? _audioPlayerStateStream;
+  bool hideElements = false;
 
   @override
   void initState() {
@@ -227,6 +228,9 @@ class _FlutterStoryPresenterState extends State<FlutterStoryPresenter>
         from: _currentProgressAnimation?.value,
       );
     }
+    setState(() {
+      hideElements = false;
+    });
   }
 
   /// Starts the countdown for the story item duration.
@@ -328,6 +332,9 @@ class _FlutterStoryPresenterState extends State<FlutterStoryPresenter>
     _audioPlayer?.pause();
     _currentVideoPlayer?.pause();
     _animationController?.stop(canceled: false);
+    setState(() {
+      hideElements = true;
+    });
   }
 
   /// Toggles mute/unmute for the media.
@@ -449,7 +456,7 @@ class _FlutterStoryPresenterState extends State<FlutterStoryPresenter>
                 height: size.height,
                 child: StoryCustomWidgetWrapper(
                   isAutoStart: true,
-                  key: UniqueKey(),
+                  // key: UniqueKey(),
                   builder: (audioPlayer) {
                     return currentItem.customWidget!(widget.flutterStoryController, audioPlayer) ??
                         const SizedBox.shrink();
@@ -594,37 +601,41 @@ class _FlutterStoryPresenterState extends State<FlutterStoryPresenter>
             alignment: storyViewIndicatorConfig.alignment,
             child: Padding(
               padding: storyViewIndicatorConfig.margin,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _currentVideoPlayer != null
-                      ? SmoothVideoProgress(
-                          controller: _currentVideoPlayer!,
-                          builder: (context, progress, duration, child) {
-                            return StoryViewIndicator(
-                              currentIndex: currentIndex,
-                              currentItemAnimatedValue: progress.inMilliseconds / duration.inMilliseconds,
-                              totalItems: widget.items.length,
-                              storyViewIndicatorConfig: storyViewIndicatorConfig,
-                            );
-                          })
-                      : _animationController != null
-                          ? AnimatedBuilder(
-                              animation: _animationController!,
-                              builder: (context, child) => StoryViewIndicator(
+              child: AnimatedOpacity(
+                opacity: hideElements ? 0 : 1,
+                duration: _hideAndShowDuration,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _currentVideoPlayer != null
+                        ? SmoothVideoProgress(
+                            controller: _currentVideoPlayer!,
+                            builder: (context, progress, duration, child) {
+                              return StoryViewIndicator(
+                                currentIndex: currentIndex,
+                                currentItemAnimatedValue: progress.inMilliseconds / duration.inMilliseconds,
+                                totalItems: widget.items.length,
+                                storyViewIndicatorConfig: storyViewIndicatorConfig,
+                              );
+                            })
+                        : _animationController != null
+                            ? AnimatedBuilder(
+                                animation: _animationController!,
+                                builder: (context, child) => StoryViewIndicator(
+                                  currentIndex: currentIndex,
+                                  currentItemAnimatedValue: currentItemProgress,
+                                  totalItems: widget.items.length,
+                                  storyViewIndicatorConfig: storyViewIndicatorConfig,
+                                ),
+                              )
+                            : StoryViewIndicator(
                                 currentIndex: currentIndex,
                                 currentItemAnimatedValue: currentItemProgress,
                                 totalItems: widget.items.length,
                                 storyViewIndicatorConfig: storyViewIndicatorConfig,
                               ),
-                            )
-                          : StoryViewIndicator(
-                              currentIndex: currentIndex,
-                              currentItemAnimatedValue: currentItemProgress,
-                              totalItems: widget.items.length,
-                              storyViewIndicatorConfig: storyViewIndicatorConfig,
-                            ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -655,18 +666,10 @@ class _FlutterStoryPresenterState extends State<FlutterStoryPresenter>
               height: size.height,
               child: GestureDetector(
                 key: ValueKey('$currentIndex'),
-                onLongPressDown: (details) {
-                  _pauseMedia();
-                },
-                onLongPressUp: () {
-                  _resumeMedia();
-                },
-                onLongPressEnd: (details) {
-                  _resumeMedia();
-                },
-                onLongPressCancel: () {
-                  _resumeMedia();
-                },
+                onLongPressDown: (details) => _startLongPressProcedure(),
+                onLongPressUp: () => _stopLongPressProcedure(),
+                onLongPressEnd: (details) => _stopLongPressProcedure(),
+                onLongPressCancel: () => _stopLongPressProcedure(),
                 onVerticalDragStart: widget.onSlideStart?.call,
                 onVerticalDragUpdate: widget.onSlideDown?.call,
               ),
@@ -676,19 +679,42 @@ class _FlutterStoryPresenterState extends State<FlutterStoryPresenter>
             Align(
               alignment: Alignment.topCenter,
               child: SafeArea(
-                  bottom: storyViewIndicatorConfig.enableBottomSafeArea,
-                  top: storyViewIndicatorConfig.enableTopSafeArea,
-                  child: widget.headerWidget!),
+                bottom: storyViewIndicatorConfig.enableBottomSafeArea,
+                top: storyViewIndicatorConfig.enableTopSafeArea,
+                child: AnimatedOpacity(
+                  opacity: hideElements ? 0 : 1,
+                  duration: _hideAndShowDuration,
+                  child: widget.headerWidget!,
+                ),
+              ),
             ),
           },
           if (widget.footerWidget != null) ...{
             Align(
               alignment: Alignment.bottomCenter,
-              child: widget.footerWidget!,
+              child: AnimatedOpacity(
+                opacity: hideElements ? 0 : 1,
+                duration: _hideAndShowDuration,
+                child: widget.footerWidget!,
+              ),
             ),
           },
         ],
       ),
     );
   }
+
+  void _startLongPressProcedure() {
+    _timer?.cancel();
+    _timer = Timer(const Duration(milliseconds: 150), () => _pauseMedia());
+  }
+
+  void _stopLongPressProcedure() {
+    _timer?.cancel();
+    _timer = null;
+    _resumeMedia();
+  }
+
+  Timer? _timer;
+  final Duration _hideAndShowDuration = const Duration(milliseconds: 200);
 }
