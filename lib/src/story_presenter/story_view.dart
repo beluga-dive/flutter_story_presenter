@@ -352,7 +352,8 @@ class _FlutterStoryPresenterState extends State<FlutterStoryPresenter>
       return;
     }
     if (_currentVideoPlayer != null && currentIndex != (widget.items.length - 1)) {
-      /// Dispose the video player only in case of multiple story
+      /// When you go to the next story, you dispose the video player of the one you were just seeing...
+      /// (Old comment) only in case of multiple story
       isCurrentItemLoaded = false;
       setState(() {});
       _currentVideoPlayer?.removeListener(videoListener);
