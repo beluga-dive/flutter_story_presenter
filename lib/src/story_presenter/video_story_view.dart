@@ -20,8 +20,7 @@ class VideoStoryView extends StatefulWidget {
   final bool? looping;
 
   /// Creates a [VideoStoryView] widget.
-  const VideoStoryView(
-      {required this.storyItem, this.onVideoLoad, this.looping, super.key});
+  const VideoStoryView({required this.storyItem, this.onVideoLoad, this.looping, super.key});
 
   @override
   State<VideoStoryView> createState() => _VideoStoryViewState();
@@ -43,8 +42,7 @@ class _VideoStoryViewState extends State<VideoStoryView> {
       final storyItem = widget.storyItem;
       if (storyItem.storyItemSource.isNetwork) {
         // Initialize video controller for network source.
-        videoPlayerController =
-            await VideoUtils.instance.videoControllerFromUrl(
+        videoPlayerController = await VideoUtils.instance.videoControllerFromUrl(
           url: storyItem.url!,
           cacheFile: storyItem.videoConfig?.cacheVideo,
           videoPlayerOptions: storyItem.videoConfig?.videoPlayerOptions,
@@ -72,7 +70,9 @@ class _VideoStoryViewState extends State<VideoStoryView> {
       hasError = true;
       debugPrint('$e');
     }
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   BoxFit get fit => widget.storyItem.videoConfig?.fit ?? BoxFit.cover;
@@ -115,10 +115,8 @@ class _VideoStoryViewState extends State<VideoStoryView> {
               fit: widget.storyItem.videoConfig?.fit ?? BoxFit.cover,
               alignment: Alignment.center,
               child: SizedBox(
-                width: widget.storyItem.videoConfig?.width ??
-                    videoPlayerController!.value.size.width,
-                height: widget.storyItem.videoConfig?.height ??
-                    videoPlayerController!.value.size.height,
+                width: widget.storyItem.videoConfig?.width ?? videoPlayerController!.value.size.width,
+                height: widget.storyItem.videoConfig?.height ?? videoPlayerController!.value.size.height,
                 child: VideoPlayer(videoPlayerController!),
               ),
             )
