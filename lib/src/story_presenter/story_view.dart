@@ -241,7 +241,10 @@ class _FlutterStoryPresenterState extends State<FlutterStoryPresenter>
     }
 
     if (currentItem.audioConfig != null) {
-      _audioPlayer?.durationFuture?.then((v) {
+      _audioPlayer?.durationStream.listen((v) {
+        // Changes to audio duration because of new version of just_audio
+        if (v == null) return;
+        _audioDurationSubscriptionStream?.cancel();
         _totalAudioDuration = v;
         _animationController ??= AnimationController(
           vsync: this,
