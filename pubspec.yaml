@@ -4,8 +4,8 @@ version: 1.0.6
 homepage: https://github.com/devkrest/flutter_story_presenter
 
 environment:
-  sdk: ">=2.18.0 <4.0.0"
-  flutter: ">=1.17.0"
+  sdk: ">=3.3.0 <4.0.0"
+  flutter: ">=3.38.5"
 
 dependencies:
 
@@ -17,7 +17,7 @@ dependencies:
   video_player: ^2.9.1
   flutter_inappwebview: ^6.0.0
   just_audio: ^0.9.37
-  vector_math: 2.1.4
+  vector_math: 2.2.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
