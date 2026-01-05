@@ -59,8 +59,7 @@ class _ImageStoryViewState extends State<ImageStoryView> {
             await audioPlayer.setUrl(widget.storyItem.audioConfig!.audioPath);
             break;
           case StoryItemSource.file:
-            await audioPlayer
-                .setFilePath(widget.storyItem.audioConfig!.audioPath);
+            await audioPlayer.setFilePath(widget.storyItem.audioConfig!.audioPath);
             break;
         }
         audioPlayer.play();
@@ -104,15 +103,14 @@ class _ImageStoryViewState extends State<ImageStoryView> {
             return child;
           }
           final w = imageConfig?.progressIndicatorBuilder?.call(
-              context,
-              '',
-              DownloadProgress('', loadingProgress?.expectedTotalBytes ?? 0,
-                  loadingProgress?.cumulativeBytesLoaded ?? 0));
+            context,
+            '',
+            DownloadProgress('', loadingProgress?.expectedTotalBytes ?? 0, loadingProgress?.cumulativeBytesLoaded ?? 0),
+          );
           return w ?? const SizedBox.shrink();
         },
       );
     }
-
     /// If the image source is a file, use [FileImage].
     else if (widget.storyItem.storyItemSource.isFile) {
       return Image(
@@ -134,10 +132,10 @@ class _ImageStoryViewState extends State<ImageStoryView> {
             return child;
           }
           final w = imageConfig?.progressIndicatorBuilder?.call(
-              context,
-              '',
-              DownloadProgress('', loadingProgress?.expectedTotalBytes ?? 0,
-                  loadingProgress?.cumulativeBytesLoaded ?? 0));
+            context,
+            '',
+            DownloadProgress('', loadingProgress?.expectedTotalBytes ?? 0, loadingProgress?.cumulativeBytesLoaded ?? 0),
+          );
           return w ?? const SizedBox.shrink();
         },
       );

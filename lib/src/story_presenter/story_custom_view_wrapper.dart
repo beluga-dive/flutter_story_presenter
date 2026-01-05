@@ -5,13 +5,14 @@ import 'package:flutter_story_presenter/flutter_story_presenter.dart';
 import 'package:just_audio/just_audio.dart';
 
 class StoryCustomWidgetWrapper extends StatefulWidget {
-  const StoryCustomWidgetWrapper(
-      {super.key,
-      required this.builder,
-      this.isAutoStart = true,
-      this.onLoaded,
-      this.onAudioLoaded,
-      required this.storyItem});
+  const StoryCustomWidgetWrapper({
+    super.key,
+    required this.builder,
+    this.isAutoStart = true,
+    this.onLoaded,
+    this.onAudioLoaded,
+    required this.storyItem,
+  });
 
   final CustomViewBuilder builder;
 
@@ -25,8 +26,7 @@ class StoryCustomWidgetWrapper extends StatefulWidget {
   final Function()? onLoaded;
 
   @override
-  State<StoryCustomWidgetWrapper> createState() =>
-      _StoryCustomWidgetWrapperState();
+  State<StoryCustomWidgetWrapper> createState() => _StoryCustomWidgetWrapperState();
 }
 
 class _StoryCustomWidgetWrapperState extends State<StoryCustomWidgetWrapper> {

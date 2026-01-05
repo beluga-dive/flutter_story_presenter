@@ -24,8 +24,7 @@ class SmoothVideoProgress extends HookWidget {
   /// for a slider for example for convenience.
   /// [child] holds the widget you passed into the constructor of this widget.
   /// Use that to optimize rebuilds.
-  final Widget Function(BuildContext context, Duration progress,
-      Duration duration, Widget? child) builder;
+  final Widget Function(BuildContext context, Duration progress, Duration duration, Widget? child) builder;
 
   /// An optional child that will be passed to the [builder] function and helps
   /// you optimize rebuilds.
@@ -34,28 +33,20 @@ class SmoothVideoProgress extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final value = useValueListenable(controller);
-    final animationController = useAnimationController(
-        duration: value.duration, keys: [value.duration]);
+    final animationController = useAnimationController(duration: value.duration, keys: [value.duration]);
 
-    final targetRelativePosition =
-        value.position.inMilliseconds / value.duration.inMilliseconds;
+    final targetRelativePosition = value.position.inMilliseconds / value.duration.inMilliseconds;
 
-    final currentPosition = Duration(
-        milliseconds:
-            (animationController.value * value.duration.inMilliseconds)
-                .round());
+    final currentPosition = Duration(milliseconds: (animationController.value * value.duration.inMilliseconds).round());
 
     final offset = value.position - currentPosition;
 
     useValueChanged(
       value.position,
       (_, __) {
-        final correct = value.isPlaying &&
-            offset.inMilliseconds > -500 &&
-            offset.inMilliseconds < -50;
+        final correct = value.isPlaying && offset.inMilliseconds > -500 && offset.inMilliseconds < -50;
         final correction = const Duration(milliseconds: 500) - offset;
-        final targetPos =
-            correct ? animationController.value : targetRelativePosition;
+        final targetPos = correct ? animationController.value : targetRelativePosition;
         final duration = correct ? value.duration + correction : value.duration;
 
         animationController.duration = duration;
@@ -68,16 +59,14 @@ class SmoothVideoProgress extends HookWidget {
 
     useValueChanged(
       value.isPlaying,
-      (_, __) => value.isPlaying
-          ? animationController.forward(from: targetRelativePosition)
-          : animationController.stop(),
+      (_, __) =>
+          value.isPlaying ? animationController.forward(from: targetRelativePosition) : animationController.stop(),
     );
 
     return AnimatedBuilder(
       animation: animationController,
       builder: (context, child) {
-        final millis =
-            animationController.value * value.duration.inMilliseconds;
+        final millis = animationController.value * value.duration.inMilliseconds;
         return builder(
           context,
           Duration(milliseconds: millis.round()),

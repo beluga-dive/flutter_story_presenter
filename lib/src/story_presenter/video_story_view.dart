@@ -108,7 +108,7 @@ class _VideoStoryViewState extends State<VideoStoryView> {
               child: VideoPlayer(
                 videoPlayerController!,
               ),
-            )
+            ),
           } else ...{
             // Display the video fitted to the screen.
             FittedBox(
@@ -119,9 +119,9 @@ class _VideoStoryViewState extends State<VideoStoryView> {
                 height: widget.storyItem.videoConfig?.height ?? videoPlayerController!.value.size.height,
                 child: VideoPlayer(videoPlayerController!),
               ),
-            )
+            ),
           },
-        }
+        },
       ],
     );
   }

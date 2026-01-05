@@ -5,11 +5,7 @@ import 'package:just_audio/just_audio.dart';
 typedef OnTextStoryLoaded = void Function(bool);
 
 class TextStoryView extends StatefulWidget {
-  const TextStoryView(
-      {required this.storyItem,
-      this.onTextStoryLoaded,
-      this.onAudioLoaded,
-      super.key});
+  const TextStoryView({required this.storyItem, this.onTextStoryLoaded, this.onAudioLoaded, super.key});
 
   final StoryItem storyItem;
   final OnTextStoryLoaded? onTextStoryLoaded;
@@ -71,13 +67,12 @@ class _TextStoryViewState extends State<TextStoryView> {
             storyItem.textConfig!.textWidget!,
           } else ...{
             Align(
-              alignment: widget.storyItem.textConfig?.textAlignment ??
-                  Alignment.center,
+              alignment: widget.storyItem.textConfig?.textAlignment ?? Alignment.center,
               child: Text(
                 widget.storyItem.url!,
               ),
             ),
-          }
+          },
         ],
       ),
     );

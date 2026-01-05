@@ -23,14 +23,14 @@ class StoryItem {
     this.useThumbnailColorForCropping = true,
     this.canvasWidth = 1.0,
     this.likesCount = -1,
-  })  : assert(
-          storyItemType == StoryItemType.custom || url != null,
-          'URL is required when storyItemType is not custom',
-        ),
-        assert(
-          storyItemType != StoryItemType.custom || customWidget != null,
-          'CustomWidget is required when storyItemType is custom',
-        );
+  }) : assert(
+         storyItemType == StoryItemType.custom || url != null,
+         'URL is required when storyItemType is not custom',
+       ),
+       assert(
+         storyItemType != StoryItemType.custom || customWidget != null,
+         'CustomWidget is required when storyItemType is custom',
+       );
 
   final double canvasWidth;
   final bool useThumbnailColorForCropping;

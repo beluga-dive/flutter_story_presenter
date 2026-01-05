@@ -26,8 +26,7 @@ class StoryViewImageConfig {
   final StoryViewAudioConfig? audioConfig;
 
   /// Progress Indicator for building image
-  final Widget Function(BuildContext, String, DownloadProgress)?
-      progressIndicatorBuilder;
+  final Widget Function(BuildContext, String, DownloadProgress)? progressIndicatorBuilder;
 
   double scale;
   double rotation;

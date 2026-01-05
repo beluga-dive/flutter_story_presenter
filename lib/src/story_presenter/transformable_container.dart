@@ -12,7 +12,7 @@ class TransformableContainer extends StatefulWidget {
   final double minScale;
   final double maxScale;
   final Function(String itemId, double scale, double rotation, Offset relativeOffset, Offset absoluteOffset)?
-      onItemTransformUpdated;
+  onItemTransformUpdated;
   final Function(ScaleEndDetails details)? onTransformEnd;
   final Size containerSize;
   final bool showRuler;
@@ -575,11 +575,11 @@ class RulerPainter extends CustomPainter {
       ..color = const Color.fromARGB(255, 27, 219, 30).withOpacity(0.2)
       ..strokeWidth = 1.5;
 
-// Calculate grid spacing to create exactly 5 rectangles in each direction
+    // Calculate grid spacing to create exactly 5 rectangles in each direction
     final double horizontalStep = containerSize.width / 10;
     final double verticalStep = containerSize.height / 10;
 
-// Draw horizontal grid lines for 5 rectangles above and 5 below center
+    // Draw horizontal grid lines for 5 rectangles above and 5 below center
     for (int i = 1; i <= 5; i++) {
       // Lines above center
       canvas.drawLine(
@@ -617,7 +617,7 @@ class RulerPainter extends CustomPainter {
       bottomTextPainter.paint(canvas, Offset(5, center.dy + verticalStep * i + 2));
     }
 
-// Draw vertical grid lines for 5 rectangles to left and 5 to right of center
+    // Draw vertical grid lines for 5 rectangles to left and 5 to right of center
     for (int i = 1; i <= 5; i++) {
       // Lines to the left of center
       canvas.drawLine(

@@ -514,7 +514,7 @@ class _FlutterStoryPresenterState extends State<FlutterStoryPresenter>
                   ],
                 ),
               ),
-            )
+            ),
           },
           if (currentItem.storyItemType.isVideo) ...{
             Align(
@@ -621,23 +621,24 @@ class _FlutterStoryPresenterState extends State<FlutterStoryPresenter>
                                 totalItems: widget.items.length,
                                 storyViewIndicatorConfig: storyViewIndicatorConfig,
                               );
-                            })
+                            },
+                          )
                         : _animationController != null
-                            ? AnimatedBuilder(
-                                animation: _animationController!,
-                                builder: (context, child) => StoryViewIndicator(
-                                  currentIndex: currentIndex,
-                                  currentItemAnimatedValue: currentItemProgress,
-                                  totalItems: widget.items.length,
-                                  storyViewIndicatorConfig: storyViewIndicatorConfig,
-                                ),
-                              )
-                            : StoryViewIndicator(
-                                currentIndex: currentIndex,
-                                currentItemAnimatedValue: currentItemProgress,
-                                totalItems: widget.items.length,
-                                storyViewIndicatorConfig: storyViewIndicatorConfig,
-                              ),
+                        ? AnimatedBuilder(
+                            animation: _animationController!,
+                            builder: (context, child) => StoryViewIndicator(
+                              currentIndex: currentIndex,
+                              currentItemAnimatedValue: currentItemProgress,
+                              totalItems: widget.items.length,
+                              storyViewIndicatorConfig: storyViewIndicatorConfig,
+                            ),
+                          )
+                        : StoryViewIndicator(
+                            currentIndex: currentIndex,
+                            currentItemAnimatedValue: currentItemProgress,
+                            totalItems: widget.items.length,
+                            storyViewIndicatorConfig: storyViewIndicatorConfig,
+                          ),
                   ],
                 ),
               ),
